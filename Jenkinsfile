@@ -1,7 +1,7 @@
 @Library("Jenkins_shared_libraries@main") _
 
 pipeline {
-    agent { label "dev" }
+    agent { label "Node" }
     
     environment {
         IMAGE_NAME = "php-app"
