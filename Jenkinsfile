@@ -1,88 +1,48 @@
+@Library("Jenkins_shared_libraries@main") _
+
 pipeline {
-    agent {
-        node {
-            label 'docker-node'
-        }
-    }
-
+    agent { label "dev" }
+    
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        IMAGE_NAME = "your_dockerhub_username/laravel-app"
+        IMAGE_NAME = "php-app"
+        BUILD_TAG = "${BUILD_NUMBER}"
+        REGISTRY_USER = credentials('dockerhub-creds').username
+        DOCKERHUB_CREDS = "dockerhub-creds"
     }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 15, unit: 'MINUTES')
-        disableConcurrentBuilds()
-    }
-
+    
     stages {
-        stage('📥 Checkout') {
+        stage("Code Checkout") {
             steps {
-                echo "GitHub se code pull kar rahe hain..."
-                git([
-                    url: 'https://github.com/your-username/php-application-with-CICD.git',
-                    branch: 'main'
-                ])
+                code_clone("https://github.com/muazahmadma/php-application-with-CICD.git", "main")
             }
         }
-
-        stage('🔨 Build & Push') {
+        
+        stage("Build") {
             steps {
-                echo "Docker image build ho rahi hai..."
-                sh '''
-                    # Login
-                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                    
-                    # Build image
-                    docker build -t ${IMAGE_NAME}:latest .
-                    
-                    # Push to Docker Hub
-                    docker push ${IMAGE_NAME}:latest
-                    
-                    # Logout (security)
-                    docker logout
-                '''
+                buildDockerImage(imageName: "${IMAGE_NAME}", buildTag: "${BUILD_TAG}")
             }
         }
-
-        stage('🚀 Deploy') {
+        
+        stage("Push") {
             steps {
-                echo "Production mein deploy ho rahe hain..."
-                sh '''
-                    cd /home/ec2-user/laravel-app
-                    
-                    # Stop old containers
-                    docker-compose down
-                    
-                    # Pull latest image aur containers start karo
-                    docker-compose up -d
-                    
-                    # Check status
-                    docker-compose ps
-                    
-                    # Database migrations
-                    docker-compose exec -T php php artisan migrate --force
-                    
-                    # Cache clear
-                    docker-compose exec -T php php artisan cache:clear
-                '''
+                pushDockerImage(
+                    credentialsId: "${DOCKERHUB_CREDS}",
+                    registryUser: "${REGISTRY_USER}",
+                    imageName: "${IMAGE_NAME}",
+                    buildTag: "${BUILD_TAG}"
+                )
             }
         }
-
-        stage('🧹 Cleanup') {
+        
+        stage("Deploy") {
             steps {
-                sh 'docker image prune -a --force --filter "until=48h"'
+                cleanAndDeploy(
+                    registryUser: "${REGISTRY_USER}",
+                    imageName: "${IMAGE_NAME}",
+                    newBuildTag: "${BUILD_TAG}",
+                    containerName: "php-app-container"
+                )
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Build #${BUILD_NUMBER} successfully deployed!"
-        }
-        failure {
-            echo "❌ Build #${BUILD_NUMBER} failed! Check logs"
         }
     }
 }
