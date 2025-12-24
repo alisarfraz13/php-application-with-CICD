@@ -65,7 +65,7 @@ pipeline {
             cleanWs()
         }
         success {
-            echo "✅ Pipeline has been  Executed Successfully!"
+            echo "✅ Pipeline  Executed Successfully!"
         }
         failure {
             echo "❌ Pipeline Failed - Check logs"
