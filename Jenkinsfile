@@ -13,41 +13,51 @@ pipeline {
     stages {
         stage("Code Checkout") {
             steps {
-                code_clone("https://github.com/alisarfraz13/php-application-with-CICD.git", "main")
+                script{
+                    code_clone("https://github.com/alisarfraz13/php-application-with-CICD.git", "main")
+                }
             }
         }
         
         stage("Build") {
             steps {
-                buildDockerImage(imageName: "${IMAGE_NAME}", buildTag: "${BUILD_TAG}")
+                script{
+                    buildDockerImage(imageName: "${IMAGE_NAME}", buildTag: "${BUILD_TAG}")
+                }
             }
         }
         
         stage("Push") {
             steps {
+                script{
                 pushDockerImage(
                     credentialsId: "${DOCKERHUB_CREDS}",
                     registryUser: "${REGISTRY_USER}",
                     imageName: "${IMAGE_NAME}",
                     buildTag: "${BUILD_TAG}"
                 )
+                }
             }
         }
         
         stage("Deploy") {
             steps {
+                script{
                 cleanAndDeploy(
                     registryUser: "${REGISTRY_USER}",
                     imageName: "${IMAGE_NAME}",
                     newBuildTag: "${BUILD_TAG}",
                     containerName: "php-app-container"
                 )
+                }
             }
         }
         
         stage("Status Check") {
             steps {
+                script{
                 statusCheck(imageName: "${IMAGE_NAME}")
+            }
             }
         }
     }
