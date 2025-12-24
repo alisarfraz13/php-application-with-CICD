@@ -32,7 +32,8 @@ pipeline {
                     pushDockerImage(
                         credentialsId: "${DOCKERHUB_CREDS}",
                         imageName: "${IMAGE_NAME}",
-                        buildTag: "${BUILD_TAG}"
+                        newBuildTag: "${BUILD_TAG}",
+                        containerName: "php-app-container"
                     )
                 }
             }
