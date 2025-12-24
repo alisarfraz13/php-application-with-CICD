@@ -6,8 +6,8 @@ pipeline {
     environment {
         IMAGE_NAME = "php-app"
         BUILD_TAG = "${BUILD_NUMBER}"
-        REGISTRY_USER = credentials('dockerhub-creds').username
-        DOCKERHUB_CREDS = "dockerhub-creds"
+        REGISTRY_USER = credentials('dockerhubcred').username
+        DOCKERHUB_CREDS = "dockerhubcred"
     }
     
     stages {
