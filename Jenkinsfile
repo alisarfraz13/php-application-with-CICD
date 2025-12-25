@@ -2,13 +2,11 @@
 
 pipeline {
     agent any
-
     environment {
         APP_NAME        = "php-app"       // Sirf project name
         IMAGE_TAG       = "${BUILD_NUMBER}"
         DOCKERHUB_CREDS = "dockerhubcred" // Jenkins Credential ID
     }
-
     stages {
         stage("Code Checkout") {
             steps {
@@ -17,7 +15,6 @@ pipeline {
                 }
             }
         }
-
         stage("Build Image") {
             steps {
                 script {
@@ -29,7 +26,6 @@ pipeline {
                 }
             }
         }
-
         stage("Push Image") {
             steps {
                 script {
@@ -41,7 +37,6 @@ pipeline {
                 }
             }
         }
-
         stage("Deploy & Cleanup") {
             steps {
                 script {
@@ -54,7 +49,6 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             cleanWs()
